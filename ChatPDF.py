@@ -29,7 +29,18 @@ class ChatPDF():
 
         return response
 
-    def __call__(self, thing_to_predict:str):
+    def get_embedding(self, text_to_embed):
+        # Embed a line of text
+        response = self.client.embeddings.create(
+            model= "text-embedding-3-small",
+            input=[text_to_embed]
+        )
+        # Extract the AI output embedding as a list of floats
+        embedding = response.data
+        
+        return embedding
+
+    def __call__(self, thing_to_predict:str, write_to_file=True):
         pdf_list = self.read_pdfs()
         self.thing_to_predict = thing_to_predict
         seperator = '\n-----\n'
@@ -46,14 +57,14 @@ class ChatPDF():
 
         gpt_response = self.call_chatgpt(system_prompt=format, user_prompt=prompt)
 
-        with open('file.csv', 'w') as f:
-            f.write(gpt_response)
+        if write_to_file:
+            with open('gpt_response.csv', 'w') as f:
+                f.write(gpt_response)
 
         features_reduced = self.call_chatgpt(
             "You summarise text into between 1 and 3 keywords. You provide the keywords and nothing more.",
             'Sumarise the features column of this: ' + gpt_response)
         
-        print(features_reduced)
         return gpt_response
     
     def extract_pdf(self, file):
@@ -93,5 +104,5 @@ class ChatPDF():
     
 
 gpt = ChatPDF()
-table = gpt('Ecosystem health')
-# gpt.call_dalle3(table)
+table = gpt('Executive Function')
+print(table)
